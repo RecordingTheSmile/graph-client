@@ -9,6 +9,7 @@ import (
 type ITokenCache interface {
 	Get(HomeAccountId string) *Token
 	Set(HomeAccountId string, token Token) error
+	Delete(HomeAccountId string) error
 }
 
 type DefaultTokenCache struct {
@@ -39,7 +40,7 @@ func (t *DefaultTokenCache) Get(HomeAccountId string) *Token {
 func (t *DefaultTokenCache) Set(HomeAccountId string, token Token) error {
 	t.locker.Lock()
 	defer t.locker.Unlock()
-	file, _ := ioutil.ReadFile("token.cache")
+	file, _ := ioutil.ReadFile("./token.cache")
 	m := map[string]string{}
 	_ = json.Unmarshal(file, &m)
 	jresult, err := json.Marshal(token)
@@ -47,6 +48,21 @@ func (t *DefaultTokenCache) Set(HomeAccountId string, token Token) error {
 		return err
 	}
 	m[HomeAccountId] = string(jresult)
+	result, err := json.Marshal(m)
+	if err != nil {
+		return err
+	}
+	err = ioutil.WriteFile("./token.cache", result, 0755)
+	return err
+}
+
+func (t *DefaultTokenCache) Delete(HomeAccountId string) error {
+	t.locker.Lock()
+	defer t.locker.Unlock()
+	file, _ := ioutil.ReadFile("./token.cache")
+	m := map[string]string{}
+	_ = json.Unmarshal(file, &m)
+	delete(m, HomeAccountId)
 	result, err := json.Marshal(m)
 	if err != nil {
 		return err

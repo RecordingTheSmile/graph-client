@@ -268,3 +268,7 @@ func (t *Auth) GetValidateToken(token Token) (Token, error, bool) { //bool is us
 		return token, nil, false
 	}
 }
+
+func (t *Auth) Logout(HomeAccountId string) error {
+	return t.TokenCache.Delete(HomeAccountId)
+}

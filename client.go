@@ -25,6 +25,11 @@ type GraphResponse struct {
 
 const baseUrl = "https://graph.microsoft.com/v1.0"
 
+//GetClient
+//
+//Get a *Client
+//
+//HomeAccountId can be set to "",but should be set by WithHomeAccountId()
 func GetClient(auth *Auth, HomeAccountId string, tokenCache ...ITokenCache) *Client {
 	c := &Client{
 		HomeAccountId: HomeAccountId,
@@ -38,18 +43,25 @@ func GetClient(auth *Auth, HomeAccountId string, tokenCache ...ITokenCache) *Cli
 	return c
 }
 
+//WithHomeAccountId
+//
+//Set HomeAccountId.
+//
+//If you set it when create Client, previous will be override.
 func (t *Client) WithHomeAccountId(HomeAccountId string) *Client {
 	t.HomeAccountId = HomeAccountId
 	return t
 }
 
-/*
-@title Send Request To Microsoft Graph(V1.0)
-@param method string Method to request
-@param path string requestUri
-@param body string requestBody(Not available when method is Get)
-@param header Optical request headers you want to add (Authorization is no need to set manually)
-*/
+// Request
+//
+//method:HTTP method used to request
+//
+//path: e.g.:https://graph.microsoft.com/v1.0/me => /me
+//
+//body: Set "" when method is GET, otherwise you will get an error
+//
+//header:Optical.Set custom headers by it.
 func (t *Client) Request(method string, path string, body string, header ...map[string][]string) (*GraphResponse, error) {
 	if t.HomeAccountId == "" {
 		return nil, errors.New("HomeAccountId is not specific")
