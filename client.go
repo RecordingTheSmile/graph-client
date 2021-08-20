@@ -51,6 +51,9 @@ func (t *Client) WithHomeAccountId(HomeAccountId string) *Client {
 @param header Optical request headers you want to add (Authorization is no need to set manually)
 */
 func (t *Client) Request(method string, path string, body string, header ...map[string][]string) (*GraphResponse, error) {
+	if t.HomeAccountId == "" {
+		return nil, errors.New("HomeAccountId is not specific")
+	}
 	t.locker.Lock()
 	defer t.locker.Unlock()
 	token := t.TokenCache.Get(t.HomeAccountId)

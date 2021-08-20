@@ -1,11 +1,8 @@
 package GraphClient
 
 import (
-	"bufio"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
-	"os"
 	"sync"
 )
 
@@ -21,7 +18,7 @@ type DefaultTokenCache struct {
 func (t *DefaultTokenCache) Get(HomeAccountId string) *Token {
 	t.locker.Lock()
 	defer t.locker.Unlock()
-	file, err := ioutil.ReadFile("token.cache")
+	file, err := ioutil.ReadFile("./token.cache")
 	if err != nil {
 		return nil
 	}
@@ -42,14 +39,9 @@ func (t *DefaultTokenCache) Get(HomeAccountId string) *Token {
 func (t *DefaultTokenCache) Set(HomeAccountId string, token Token) error {
 	t.locker.Lock()
 	defer t.locker.Unlock()
-	file, err := ioutil.ReadFile("token.cache")
-	if err != nil {
-		return err
-	}
+	file, _ := ioutil.ReadFile("token.cache")
 	m := map[string]string{}
-	if err := json.Unmarshal(file, &m); err != nil {
-		return err
-	}
+	_ = json.Unmarshal(file, &m)
 	jresult, err := json.Marshal(token)
 	if err != nil {
 		return err
@@ -59,36 +51,6 @@ func (t *DefaultTokenCache) Set(HomeAccountId string, token Token) error {
 	if err != nil {
 		return err
 	}
-	if isExist("token.cache") {
-		f, err := os.OpenFile("token.cache", os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0755)
-		defer f.Close()
-		if err != nil {
-			return err
-		}
-		writer := bufio.NewWriter(f)
-		_, err = writer.Write(result)
-		if err != nil {
-			return err
-		}
-		err = writer.Flush()
-		return err
-	} else {
-		err := ioutil.WriteFile("token.cache", result, 0755)
-		return err
-	}
-}
-
-func isExist(path string) bool {
-	_, err := os.Stat(path)
-	if err != nil {
-		if os.IsExist(err) {
-			return true
-		}
-		if os.IsNotExist(err) {
-			return false
-		}
-		fmt.Println(err)
-		return false
-	}
-	return true
+	err = ioutil.WriteFile("./token.cache", result, 0755)
+	return err
 }
