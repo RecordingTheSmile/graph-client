@@ -27,4 +27,4 @@ You can find more by reading Documents in Doc folder.
 
 本包的思想基于官方的NodeJS SDK
 
-您可以在Docs文件夹阅读详情
+您可以在Doc文件夹阅读详情
