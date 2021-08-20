@@ -32,34 +32,58 @@ type Token struct {
 }
 
 func (t *AuthBuilder) WithTenant(Tenant string) *AuthBuilder {
+	if t.auth == nil {
+		t.auth = new(Auth)
+	}
 	t.auth.Tenant = Tenant
 	return t
 }
 func (t *AuthBuilder) WithClientId(ClientId string) *AuthBuilder {
+	if t.auth == nil {
+		t.auth = new(Auth)
+	}
 	t.auth.ClientId = ClientId
 	return t
 }
 func (t *AuthBuilder) WithClientSecret(ClientSecret string) *AuthBuilder {
+	if t.auth == nil {
+		t.auth = new(Auth)
+	}
 	t.auth.ClientSecret = ClientSecret
 	return t
 }
 func (t *AuthBuilder) WithRedirectUrl(RedirectUrl string) *AuthBuilder {
+	if t.auth == nil {
+		t.auth = new(Auth)
+	}
 	t.auth.RedirectUrl = RedirectUrl
 	return t
 }
 func (t *AuthBuilder) WithScopes(Scopes []string) *AuthBuilder {
+	if t.auth == nil {
+		t.auth = new(Auth)
+	}
 	t.auth.Scopes = Scopes
 	return t
 }
 func (t *AuthBuilder) WithResponseMode(ResponseMode string) *AuthBuilder {
+	if t.auth == nil {
+		t.auth = new(Auth)
+	}
 	t.auth.ResponseMode = ResponseMode
 	return t
 }
 func (t *AuthBuilder) WithCustomTokenCache(TokenCache ITokenCache) *AuthBuilder {
+	if t.auth == nil {
+		t.auth = new(Auth)
+	}
 	t.auth.TokenCache = TokenCache
 	return t
 }
 func (t *AuthBuilder) Build() (*Auth, error) {
+	if t.auth == nil {
+		return nil, errors.New("Auth is Nil")
+	}
 	if t.auth.ClientId == "" ||
 		t.auth.ClientSecret == "" ||
 		t.auth.Scopes == nil ||
