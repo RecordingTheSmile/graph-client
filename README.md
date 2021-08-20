@@ -1,6 +1,6 @@
 # Microsoft-Graph-SDK-go
 
-Microsoft Graph SDK for Golang(Unofficial)   
+Microsoft Graph SDK for Golang(Unofficial)
 
 You can:
 
@@ -14,8 +14,8 @@ Inspired by official NodeJS SDK.
 
 You can find more by reading Documents in Doc folder.
 
-
 # 中文简介:
+
 个人编写的Microsoft Graph客户端
 
 你可以:   

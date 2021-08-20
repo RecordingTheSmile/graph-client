@@ -61,7 +61,7 @@ func (t *Client) WithHomeAccountId(HomeAccountId string) *Client {
 //
 //body: Set "" when method is GET, otherwise you will get an error
 //
-//header:Optical.Set custom headers by it.
+//header:Optional.Set custom headers by it.
 func (t *Client) Request(method string, path string, body string, header ...map[string][]string) (*GraphResponse, error) {
 	if t.HomeAccountId == "" {
 		return nil, errors.New("HomeAccountId is not specific")
