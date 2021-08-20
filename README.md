@@ -12,7 +12,7 @@ You can:
 
 Inspired by official NodeJS SDK.
 
-You can find more by reading Documents in Docs folder.
+You can find more by reading Documents in Doc folder.
 
 
 # 中文简介:
