@@ -14,7 +14,6 @@ type Client struct {
 	HomeAccountId string
 	TokenCache    ITokenCache
 	AuthClient    *Auth
-	locker        sync.Mutex
 }
 type GraphResponse struct {
 	Body        string
@@ -36,7 +35,7 @@ func GetClient(auth *Auth, HomeAccountId string, tokenCache ...ITokenCache) *Cli
 		AuthClient:    auth,
 	}
 	if len(tokenCache) == 0 {
-		c.TokenCache = &DefaultTokenCache{}
+		c.TokenCache = auth.TokenCache
 	} else {
 		c.TokenCache = tokenCache[0]
 	}
@@ -66,8 +65,6 @@ func (t *Client) Request(method string, path string, body string, header ...map[
 	if t.HomeAccountId == "" {
 		return nil, errors.New("HomeAccountId is not specific")
 	}
-	t.locker.Lock()
-	defer t.locker.Unlock()
 	token := t.TokenCache.Get(t.HomeAccountId)
 	if token == nil {
 		return nil, errors.New("cannot get token from token cache")
