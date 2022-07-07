@@ -1,12 +1,15 @@
 package GraphClient
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/tidwall/gjson"
+	"golang.org/x/net/http2"
 	"io/ioutil"
 	"net/http"
-	"strings"
+	"time"
 )
 
 type Client struct {
@@ -21,7 +24,30 @@ type GraphResponse struct {
 	RawResponse *http.Response
 }
 
-const baseUrl = "https://graph.microsoft.com/v1.0"
+const baseUrl = "https://%s/%s"
+
+func newHttpClient() *http.Client {
+	transport := &http.Transport{
+		Proxy:                 http.ProxyFromEnvironment,
+		IdleConnTimeout:       90 * time.Second,
+		TLSHandshakeTimeout:   10 * time.Second,
+		ExpectContinueTimeout: 1 * time.Second,
+	}
+	h2, err := http2.ConfigureTransports(transport)
+	client := &http.Client{
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse
+		},
+		Timeout: 2 * time.Minute,
+	}
+	if err != nil {
+		client.Transport = transport
+	} else {
+		client.Transport = h2
+	}
+
+	return client
+}
 
 //GetClient
 //
@@ -60,7 +86,7 @@ func (t *Client) WithHomeAccountId(HomeAccountId string) *Client {
 //body: Set "" when method is GET, otherwise you will get an error
 //
 //header:Optional.Set custom headers by it.
-func (t *Client) Request(method string, path string, body string, header ...map[string][]string) (*GraphResponse, error) {
+func (t *Client) Request(method string, path string, body []byte, header *map[string][]string, query *map[string][]string) (*GraphResponse, error) {
 	if t.HomeAccountId == "" {
 		return nil, errors.New("HomeAccountId is not specific")
 	}
@@ -73,23 +99,35 @@ func (t *Client) Request(method string, path string, body string, header ...map[
 		return nil, err
 	}
 	if changed {
-		_ = t.TokenCache.Set(t.HomeAccountId, validateToken)
+		err := t.TokenCache.Set(t.HomeAccountId, validateToken)
+		if err != nil {
+			return nil, err
+		}
 	}
-	req, err := http.NewRequest(method, baseUrl+path, strings.NewReader(body))
+	req, err := http.NewRequest(method, fmt.Sprintf(baseUrl, t.AuthClient.Endpoint, t.AuthClient.ApiVersion)+path, bytes.NewBuffer(body))
 	if err != nil {
 		return nil, err
 	}
 	req.Header["Authorization"] = []string{"Bearer " + validateToken.AccessToken}
-	for _, s := range header {
-		for a, b := range s {
-			req.Header[a] = b
+
+	if header != nil {
+		for k, v := range *header {
+			req.Header[k] = v
 		}
 	}
-	client := &http.Client{
-		CheckRedirect: func(req *http.Request, via []*http.Request) error {
-			return http.ErrUseLastResponse
-		},
+
+	if query != nil {
+		q := req.URL.Query()
+		for k, v := range *query {
+			for _, i := range v {
+				q.Add(k, i)
+			}
+		}
+		req.URL.RawQuery = q.Encode()
 	}
+
+	client := newHttpClient()
+
 	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err
@@ -114,6 +152,6 @@ func (t *GraphResponse) ToJson() (map[string]interface{}, error) {
 	}
 	return m, nil
 }
-func (t *GraphResponse) GetJson(path string) gjson.Result {
-	return gjson.Get(t.Body, path)
+func (t *GraphResponse) GetJson() gjson.Result {
+	return gjson.Parse(t.Body)
 }

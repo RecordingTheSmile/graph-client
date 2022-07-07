@@ -19,6 +19,8 @@ type Auth struct {
 	Scopes       []string
 	ResponseMode string
 	TokenCache   ITokenCache
+	ApiVersion   string
+	Endpoint     string
 }
 
 type AuthBuilder struct {
@@ -29,6 +31,11 @@ type Token struct {
 	AccessToken  string
 	Expires      int64
 	RefreshToken string
+}
+
+// NewAuthBuilder Create a new builder
+func NewAuthBuilder() *AuthBuilder {
+	return &AuthBuilder{}
 }
 
 func (t *AuthBuilder) WithTenant(Tenant string) *AuthBuilder {
@@ -80,6 +87,14 @@ func (t *AuthBuilder) WithCustomTokenCache(TokenCache ITokenCache) *AuthBuilder 
 	t.auth.TokenCache = TokenCache
 	return t
 }
+func (t *AuthBuilder) WithApiVersion(apiVersion string) *AuthBuilder {
+	t.auth.ApiVersion = apiVersion
+	return t
+}
+func (t *AuthBuilder) WithEndpoint(endpointLocation string) *AuthBuilder {
+	t.auth.Endpoint = endpointLocation
+	return t
+}
 func (t *AuthBuilder) Build() (*Auth, error) {
 	if t.auth == nil {
 		return nil, errors.New("Auth is Nil")
@@ -98,6 +113,12 @@ func (t *AuthBuilder) Build() (*Auth, error) {
 	}
 	if t.auth.TokenCache == nil {
 		t.auth.TokenCache = &DefaultTokenCache{}
+	}
+	if t.auth.Endpoint == "" {
+		t.auth.Endpoint = EndpointInternational
+	}
+	if t.auth.ApiVersion == "" {
+		t.auth.ApiVersion = ApiVersion10
 	}
 	return t.auth, nil
 }
@@ -126,6 +147,9 @@ func (t *Auth) GetAuthUrl(state string) string {
 	return u.String()
 }
 
+// GetAccessToken Stores user AccessToken and RefreshToken to TokenStore
+//
+//returns User's HomeAccountId
 func (t *Auth) GetAccessToken(code string) (string, error) {
 	client := &http.Client{}
 	reqBody := url.Values{}
