@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/tidwall/gjson"
-	"golang.org/x/net/http2"
 	"io/ioutil"
 	"net/http"
 	"time"
@@ -33,17 +32,12 @@ func newHttpClient() *http.Client {
 		TLSHandshakeTimeout:   10 * time.Second,
 		ExpectContinueTimeout: 1 * time.Second,
 	}
-	h2, err := http2.ConfigureTransports(transport)
 	client := &http.Client{
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {
 			return http.ErrUseLastResponse
 		},
-		Timeout: 2 * time.Minute,
-	}
-	if err != nil {
-		client.Transport = transport
-	} else {
-		client.Transport = h2
+		Timeout:   2 * time.Minute,
+		Transport: transport,
 	}
 
 	return client
